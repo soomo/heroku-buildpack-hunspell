@@ -39,3 +39,12 @@ else
   echo "-----> Extracting Hunspell $CACHE_FILE => $VENDOR_DIR"
   tar xzf $CACHE_FILE -C $VENDOR_DIR
 fi
+
+# update PATH and LD_LIBRARY_PATH
+echo "-----> Updating environment variables"
+PROFILE_PATH="$BUILD_DIR/.profile.d/hunspell.sh"
+ACTUAL_INSTALL_PATH="$HOME/vendor/hunspell"
+mkdir -p $(dirname $PROFILE_PATH)
+echo "export PATH=$ACTUAL_INSTALL_PATH/bin:\$PATH" >> $PROFILE_PATH
+echo "export LD_LIBRARY_PATH=$ACTUAL_INSTALL_PATH/lib:\$LD_LIBRARY_PATH" >> $PROFILE_PATH
+
