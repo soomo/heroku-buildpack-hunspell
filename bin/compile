@@ -1,13 +1,41 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# This script compiles & installs hunspell and the python bindings to hunspell
-#
+indent() {
+  sed -u 's/^/       /'
+}
 
-cd $(pwd)/vendor/hunspell
-tar -zxvf hunspell-1.3.3.tar.gz
-cd hunspell-1.3.3
-./configure --prefix=/app/hunspell
-make
-make install
-cd ..
-rm -rf hunspell-1.3.3
+echo "-----> Install Hunspell"
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+VENDOR_DIR="$BUILD_DIR/vendor"
+INSTALL_DIR="$VENDOR_DIR/hunspell"
+CACHE_FILE="$CACHE_DIR/hunspell.tar.gz"
+
+if [ ! -f $CACHE_FILE ]; then
+  
+  echo "-----> Extracting Hunspell"
+  cd $(pwd)/vendor/hunspell
+  tar -zxvf hunspell-1.3.3.tar.gz | indent
+
+  echo "-----> Building Hunspell"
+  cd hunspell-1.3.3
+  export CPPFLAGS="-I$INSTALL_DIR/include"
+  export LDFLAGS="-L$INSTALL_DIR/lib"
+  ./configure --prefix=$INSTALL_DIR
+  make && make install
+  cd ..
+  rm -rf hunspell-1.3.3
+
+  # cache for future deploys
+  echo "-----> Caching Hunspell installation"
+  cd $VENDOR_DIR
+  REL_INSTALL_DIR="hunspell"
+  tar czf $REL_INSTALL_DIR.tar.gz $REL_INSTALL_DIR
+  mv $REL_INSTALL_DIR.tar.gz $CACHE_FILE
+
+else
+  # cache exists, extract it
+  echo "-----> Extracting Hunspell $CACHE_FILE => $VENDOR_DIR"
+  tar xzf $CACHE_FILE -C $VENDOR_DIR
+fi
